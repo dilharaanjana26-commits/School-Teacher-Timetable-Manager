@@ -1,0 +1,17 @@
+.card-stat {
+    border-left: 4px solid #0d6efd;
+}
+
+.table-responsive {
+    max-height: 75vh;
+}
+
+@media print {
+    .no-print {
+        display: none !important;
+    }
+
+    body {
+        background: #fff !important;
+    }
+}
