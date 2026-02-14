@@ -17,9 +17,12 @@ A PHP + MySQL + Bootstrap web application for managing school teachers, weekly t
 3. Update DB credentials in `includes/config.php`.
 4. Start local server:
    ```bash
-   php -S 0.0.0.0:8000 -t public
+   php -S 0.0.0.0:8000
    ```
 5. Open `http://localhost:8000`.
+
+### Shared-hosting note (InfinityFree-friendly)
+The app entry files are available directly at the project root (for example `index.php`, `dashboard.php`, etc.), so deployment works on hosts that require `index.php` in the root directory.
 
 ## Default admin
 - Username: `admin`
