@@ -44,11 +44,12 @@ require_once __DIR__ . '/../includes/header.php';
     <div class="card-header">Teacher Workload Summary</div>
     <div class="card-body table-responsive">
         <table class="table table-striped align-middle">
-            <thead><tr><th>Teacher</th><th>Total Assigned Periods</th><th>Unique Slots</th></tr></thead>
+            <thead><tr><th>Teacher</th><th>Section</th><th>Total Assigned Periods</th><th>Unique Slots</th></tr></thead>
             <tbody>
             <?php foreach ($workload as $row): ?>
                 <tr>
                     <td><?= sanitize($row['name']) ?></td>
+                    <td><?= sanitize((string) ($row['section'] ?? '')) ?></td>
                     <td><?= (int) $row['assigned_periods'] ?></td>
                     <td><?= (int) $row['unique_slots'] ?></td>
                 </tr>
