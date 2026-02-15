@@ -8,6 +8,12 @@ require_once __DIR__ . '/../includes/helpers.php';
 
 requireLogin();
 
+$teacherSections = [
+    'Primary(1-5)',
+    'Secondary(6-11)',
+    'A Level(12 & 13)',
+];
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
 
@@ -15,16 +21,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $name = trim($_POST['name'] ?? '');
         $email = trim($_POST['email'] ?? '');
         $phone = trim($_POST['phone'] ?? '');
+        $section = trim($_POST['section'] ?? '');
         $maxPeriods = max(1, (int) ($_POST['max_periods_per_day'] ?? 6));
         $subjectIds = $_POST['subject_ids'] ?? [];
 
+        if (!in_array($section, $teacherSections, true)) {
+            setFlash('Please select a valid teacher section.', 'danger');
+            header('Location: teachers.php');
+            exit;
+        }
+
         $pdo->beginTransaction();
         try {
-            $stmt = $pdo->prepare('INSERT INTO teachers (name, email, phone, max_periods_per_day) VALUES (:name, :email, :phone, :max_periods)');
+            $stmt = $pdo->prepare('INSERT INTO teachers (name, email, phone, section, max_periods_per_day) VALUES (:name, :email, :phone, :section, :max_periods)');
             $stmt->execute([
                 'name' => $name,
                 'email' => $email ?: null,
                 'phone' => $phone ?: null,
+                'section' => $section,
                 'max_periods' => $maxPeriods,
             ]);
             $teacherId = (int) $pdo->lastInsertId();
@@ -46,18 +60,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $name = trim($_POST['name'] ?? '');
         $email = trim($_POST['email'] ?? '');
         $phone = trim($_POST['phone'] ?? '');
+        $section = trim($_POST['section'] ?? '');
         $maxPeriods = max(1, (int) ($_POST['max_periods_per_day'] ?? 6));
         $isActive = isset($_POST['is_active']) ? 1 : 0;
         $subjectIds = $_POST['subject_ids'] ?? [];
 
+        if (!in_array($section, $teacherSections, true)) {
+            setFlash('Please select a valid teacher section.', 'danger');
+            header('Location: teachers.php');
+            exit;
+        }
+
         $pdo->beginTransaction();
         try {
-            $stmt = $pdo->prepare('UPDATE teachers SET name=:name, email=:email, phone=:phone, max_periods_per_day=:max_periods, is_active=:is_active WHERE id=:id');
+            $stmt = $pdo->prepare('UPDATE teachers SET name=:name, email=:email, phone=:phone, section=:section, max_periods_per_day=:max_periods, is_active=:is_active WHERE id=:id');
             $stmt->execute([
                 'id' => $id,
                 'name' => $name,
                 'email' => $email ?: null,
                 'phone' => $phone ?: null,
+                'section' => $section,
                 'max_periods' => $maxPeriods,
                 'is_active' => $isActive,
             ]);
@@ -110,6 +132,14 @@ require_once __DIR__ . '/../includes/header.php';
             <div class="col-md-3"><input name="name" class="form-control" placeholder="Name" required></div>
             <div class="col-md-3"><input name="email" type="email" class="form-control" placeholder="Email"></div>
             <div class="col-md-2"><input name="phone" class="form-control" placeholder="Phone"></div>
+            <div class="col-md-2">
+                <select name="section" class="form-select" required>
+                    <option value="" selected disabled>Select Section</option>
+                    <?php foreach ($teacherSections as $teacherSection): ?>
+                        <option value="<?= sanitize($teacherSection) ?>"><?= sanitize($teacherSection) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
             <div class="col-md-2"><input name="max_periods_per_day" type="number" class="form-control" min="1" max="8" value="6" required></div>
             <div class="col-md-2 d-grid"><button class="btn btn-primary" type="submit">Add</button></div>
             <div class="col-12">
@@ -127,13 +157,14 @@ require_once __DIR__ . '/../includes/header.php';
 <div class="card shadow-sm">
     <div class="card-body table-responsive">
         <table class="table table-striped align-middle">
-            <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Max/day</th><th>Status</th><th>Actions</th></tr></thead>
+            <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Section</th><th>Max/day</th><th>Status</th><th>Actions</th></tr></thead>
             <tbody>
             <?php foreach ($teachers as $teacher): ?>
                 <tr>
                     <td><?= sanitize($teacher['name']) ?></td>
                     <td><?= sanitize((string) $teacher['email']) ?></td>
                     <td><?= sanitize((string) $teacher['phone']) ?></td>
+                    <td><?= sanitize((string) ($teacher['section'] ?? '')) ?></td>
                     <td><?= (int) $teacher['max_periods_per_day'] ?></td>
                     <td><?= (int) $teacher['is_active'] ? 'Active' : 'Inactive' ?></td>
                     <td>
@@ -146,13 +177,22 @@ require_once __DIR__ . '/../includes/header.php';
                     </td>
                 </tr>
                 <tr class="collapse" id="edit-<?= (int) $teacher['id'] ?>">
-                    <td colspan="6">
+                    <td colspan="7">
                         <form method="post" class="row g-2">
                             <input type="hidden" name="action" value="update">
                             <input type="hidden" name="id" value="<?= (int) $teacher['id'] ?>">
                             <div class="col-md-3"><input class="form-control" name="name" value="<?= sanitize($teacher['name']) ?>" required></div>
                             <div class="col-md-2"><input class="form-control" name="email" value="<?= sanitize((string) $teacher['email']) ?>"></div>
                             <div class="col-md-2"><input class="form-control" name="phone" value="<?= sanitize((string) $teacher['phone']) ?>"></div>
+                            <div class="col-md-2">
+                                <select class="form-select" name="section" required>
+                                    <?php foreach ($teacherSections as $teacherSection): ?>
+                                        <option value="<?= sanitize($teacherSection) ?>" <?= (($teacher['section'] ?? '') === $teacherSection) ? 'selected' : '' ?>>
+                                            <?= sanitize($teacherSection) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
                             <div class="col-md-1"><input class="form-control" type="number" min="1" max="8" name="max_periods_per_day" value="<?= (int) $teacher['max_periods_per_day'] ?>"></div>
                             <div class="col-md-2">
                                 <select class="form-select" name="subject_ids[]" multiple>

@@ -26,13 +26,13 @@ function getTeacherWorkload(PDO $pdo, ?int $teacherId = null): array
         $params['teacher_id'] = $teacherId;
     }
 
-    $sql = "SELECT t.id, t.name,
+    $sql = "SELECT t.id, t.name, t.section,
                 COUNT(tt.id) AS assigned_periods,
                 COUNT(DISTINCT CONCAT(tt.day_of_week, '-', tt.period_number)) AS unique_slots
             FROM teachers t
             LEFT JOIN timetable tt ON tt.teacher_id = t.id
             $where
-            GROUP BY t.id, t.name
+            GROUP BY t.id, t.name, t.section
             ORDER BY assigned_periods ASC, t.name ASC";
 
     $stmt = $pdo->prepare($sql);

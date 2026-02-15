@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS teachers (
     name VARCHAR(150) NOT NULL,
     email VARCHAR(150) UNIQUE,
     phone VARCHAR(30),
+    section ENUM('Primary(1-5)', 'Secondary(6-11)', 'A Level(12 & 13)') NOT NULL,
     max_periods_per_day INT NOT NULL DEFAULT 6,
     is_active TINYINT(1) NOT NULL DEFAULT 1,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
